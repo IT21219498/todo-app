@@ -54,8 +54,8 @@ function App() {
   const handleTaskComplete = async (taskId) => {
     try {
       await markTaskAsCompleted(taskId);
-      // Remove the completed task from the UI
-      setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
+      // Refresh the task list after marking a task as completed
+      await fetchTasks();
     } catch {
       setError("Failed to complete task. Please try again.");
     }
