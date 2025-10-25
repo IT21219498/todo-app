@@ -1,0 +1,83 @@
+version: "3.8"
+
+services:
+  # MySQL Database
+  database:
+    image: mysql:8.0
+    container_name: todo-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: tododb
+      MYSQL_USER: todouser
+      MYSQL_PASSWORD: todopassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./DB/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - todo-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-prootpassword",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: --default-authentication-plugin=mysql_native_password
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: todo-backend
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Server=database;Port=3306;Database=tododb;User=todouser;Password=todopassword;
+      - Cors__AllowedOrigins=http://localhost,http://localhost:80,http://frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - todo-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: todo-frontend
+    environment:
+      - VITE_API_URL=http://localhost:3000/api
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - todo-network
+
+networks:
+  todo-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local

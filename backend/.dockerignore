@@ -1,0 +1,57 @@
+## Build artifacts
+**/bin/
+**/obj/
+**/out/
+
+## VS Code
+.vscode/
+.vs/
+
+## User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+
+## Test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+*.coverage
+*.coveragexml
+
+## NuGet Packages
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+
+## Migration scripts (keep in version control)
+!Migrations/**/*.cs
+
+## Environment files
+.env
+.env.local
+.env.*.local
+
+## Logs
+*.log
+
+## macOS
+.DS_Store
+
+## Documentation
+README.md
+*.md
+!Migrations/*.md
