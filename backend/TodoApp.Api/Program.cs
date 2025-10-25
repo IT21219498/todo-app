@@ -6,13 +6,30 @@ using TodoApp.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
+// Add services to the container.
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+// Only use MySQL if not in testing environment
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddDbContext<TodoDbContext>(options =>
+        options.UseMySql(
+            connectionString,
+            ServerVersion.AutoDetect(connectionString)
+        )
+    );
+}
+else
+{
+    // Will be configured by tests
+    builder.Services.AddDbContext<TodoDbContext>();
+}
+
+// Add Controllers
 builder.Services.AddControllers();
 
-// Configure Database
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<TodoDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+// Add Authorization services
+builder.Services.AddAuthorization();
 
 // Register repositories
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
@@ -70,19 +87,22 @@ app.UseSwaggerUI(options =>
     options.RoutePrefix = string.Empty; // Serve Swagger UI at root
 });
 
-// Apply database migrations automatically
-using (var scope = app.Services.CreateScope())
+// Apply database migrations automatically (skip in testing)
+if (!app.Environment.IsEnvironment("Testing"))
 {
-    var services = scope.ServiceProvider;
-    try
+    using (var scope = app.Services.CreateScope())
     {
-        var context = services.GetRequiredService<TodoDbContext>();
-        context.Database.Migrate();
-        app.Logger.LogInformation("Database migrations applied successfully");
-    }
-    catch (Exception ex)
-    {
-        app.Logger.LogError(ex, "An error occurred while migrating the database");
+        var services = scope.ServiceProvider;
+        try
+        {
+            var context = services.GetRequiredService<TodoDbContext>();
+            context.Database.Migrate();
+            app.Logger.LogInformation("Database migrations applied successfully");
+        }
+        catch (Exception ex)
+        {
+            app.Logger.LogError(ex, "An error occurred while migrating the database");
+        }
     }
 }
 
