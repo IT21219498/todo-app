@@ -22,7 +22,7 @@ Choose one of the following:
 ### 1. Clone and Navigate
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/IT21219498/todo-app.git
 cd todo-app
 ```
 
@@ -438,5 +438,3 @@ Update if needed:
    ```
 
 ---
-
-**Ready to build amazing todo lists! 🎉**
